@@ -48,7 +48,7 @@ export default class SearchByCategories extends Vue {
         this.albums=response;
         this.albums.data.results.forEach((element: any) => {
             this.ids.push(element.id);
-            console.log(element.id);
+            
         });
 
     }
