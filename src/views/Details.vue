@@ -1,7 +1,7 @@
 <template>
-<div class="container text-center" :key="album.id">
+<div class="container text-center" >
 
-<v-container class="grey lighten-5 text-center" :key="album.id">
+<v-container class="grey lighten-5 text-center" :key="i">
     <v-row no-gutters>
       <v-col
         cols="12"
@@ -21,11 +21,22 @@
         </h2>
         <h3>
         <strong>Artist: </strong>
-        {{album.artist}}
+        <p v-for="artist in album.artists" v-bind:key="artist.key">
+        {{artist.name}}
+        </p>
         </h3>
 
       <div><p><strong>Year: </strong>{{album.year}}</p></div>
-       <div><p><strong>Genre: </strong>{{album.genres}}</p></div>
+       <div><strong>Genre: </strong>
+       <p v-for="genre in album.genres" v-bind:key="genre.key">
+        {{genre}}
+        </p>
+       </div>
+        <div><strong>Styles: </strong>
+       <p v-for="style in album.styles" v-bind:key="style.key">
+        {{style}}
+        </p>
+       </div>
        <div><p><strong>Country: </strong>{{album.country}}</p></div>
 
 
@@ -46,7 +57,7 @@
           >
 
             
-              {{track.key}} {{track}}
+             {{track.title}}: {{track.duration}}
             
           </h5>
         
@@ -90,7 +101,7 @@
         >
           <div class="display-3">
            <v-img
-      v-bind:src=image alt="Artist Picture" 
+      v-bind:src="image.resource_url" alt="Artist Picture" 
     ></v-img>
           </div>
         </v-row>
@@ -105,18 +116,33 @@
       
       </v-col>
     </v-row>
+    <h3>You might also like:</h3>
     <v-row
           class="fill-height"
           align="center"
           justify="center"
-        >
+        :key="i">
         
-             <Recommendations :recommendations="album.recommendations" />
+        <v-col
+        cols="12"
+        sm="4"
+        v-for="recommendation in recommendations" v-bind:key="recommendation.key"
+      ><AlbumCard :album="recommendation" :show=0 />
+      <v-btn
+        color="deep-purple lighten-2"
+        text
+        @click="viewRecDetails(recommendation)"
+        
+      >
+       Find out more
+      </v-btn>
+        </v-col>   
             
           
           
 
     </v-row>
+    
     
 </v-container>
 </div>
@@ -125,44 +151,56 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import axios from 'axios';
-import Recommendations from '@/components/Recommendations.vue'
+import AlbumCard from '@/components/AlbumCard.vue'
 @Component({
   components: {
-    Recommendations,
+    AlbumCard,
   }})
 export default class Details extends Vue {
-  album: any;
-
-  baseUrl = 'https://api.discogs.com/database/search?type=master&artist=';
-  my_key = '&key=FMvTlSGADQWmohiXndNO&secret=zaYzcFPxvIEZaQJeXpwhJDdPlHQYNTaR';
+  album_id:any;
+  i:any;
+  album = [];
+  recommendations=[];
+  baseUrl = 'https://api.discogs.com/releases/';
+  baseUrlSearch = 'https://api.discogs.com/database/search?type=release&style='
+  my_key = 'key=FMvTlSGADQWmohiXndNO&secret=zaYzcFPxvIEZaQJeXpwhJDdPlHQYNTaR';
   recommendationList:any;  
   rerender = "";
  
   created() {
-      
-    this.album = {
-      album_id: this.$route.query.album_id,
-      artist_id: this.$route.query.artist_id,
-      title: this.$route.query.title,
-      artist: this.$route.query.artist,
-      year: this.$route.query.year,
-      country: this.$route.query.country,
-      images: this.$route.query.images,
-      genres: this.$route.query.genres,
-      tracklist: this.$route.query.tracklist,
-      recommendations:this.$route.query.recommendations,
      
+    this.album_id = {
+      value: this.$route.query.album_id,
+   
     };
 
     
-    this.getRecommendations();
+    this.getAlbum(this.album_id.value);
     
     
   }
+
+  async getAlbum(id:any){
+    this.i=0;
+    this.recommendations=[];
+    const response = await axios.get(this.baseUrl + id +'?' +this.my_key);
+    this.album = response.data;
+    console.log(this.album);
+    this.getRecommendations(response.data.styles[this.i],response.data.genres[this.i]);
+  }
   
-    getRecommendations(){
- 
-    console.log(this.album.recommendations);
+  async getRecommendations(style:any, genre:any){
+    const response = await axios.get(this.baseUrlSearch + style +'&' + genre +'&'+this.my_key +'&page=1&per_page=3');
+     console.log(response.data.results);
+    this.recommendations=response.data.results;
+    
+    
+  }
+  viewRecDetails(album: any) {
+   
+   this.album=album;
+  this.getAlbum(album.id);
+   this.i=1;
   }
  
 }

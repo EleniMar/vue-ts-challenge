@@ -12,11 +12,11 @@
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import axios from 'axios';
-import AlbumList from '@/components/AlbumList.vue'
+
 
 @Component({
   components: {
-    AlbumList,
+  
   }
 })
 export default class SearchByCategories extends Vue {

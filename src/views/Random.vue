@@ -1,5 +1,5 @@
 <template>
-<div class="container text-center" :key="id">
+<div class="container text-center" >
 
 <v-container class="grey lighten-5 text-center">
     <v-row no-gutters>
@@ -7,11 +7,12 @@
         cols="12"
         sm="6"
       >
-        <AlbumInfo :id="id" />
+        <AlbumCard :album="album" :show=1 :random=1 />
       </v-col>
       <v-col
         cols="12"
         sm="6"
+        :key="id"
       >
       <v-card
       class="d-flex grey lighten-5 align-content-center flex-wrap"
@@ -49,18 +50,30 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
-import AlbumInfo from '@/components/AlbumInfo.vue'
-
+import AlbumCard from '@/components/AlbumCard.vue'
+import axios from 'axios';
 @Component({
   components: {
-    AlbumInfo,
+    AlbumCard,
   }
 })
 export default class Random extends Vue {
   id = Math.floor(Math.random()*15000);
+  album=[]
+  baseUrl = 'https://api.discogs.com/';
+  my_key = '?key=FMvTlSGADQWmohiXndNO&secret=zaYzcFPxvIEZaQJeXpwhJDdPlHQYNTaR';
+  created(){
+    this.getAlbum(this.id);
+  }
+  async getAlbum(id:any){
+    const response = await axios.get(this.baseUrl+'releases/' + id +this.my_key);
+    console.log(response);
+    this.album=response.data;
+  }
 
   forceRerender(){
     this.id = Math.floor(Math.random()*15000);
+    this.getAlbum(this.id);
   }
 }
 </script>
